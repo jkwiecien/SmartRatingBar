@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:gravity="center"
+    tools:context=".MainActivity">
+
+    <co.techbrewery.smartratingbar.SmartRatingBar
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:foregroundTint="@color/colorAccent"
+        app:emptyStateDrawable="@drawable/ic_hourglass_empty_black_24dp"
+        app:halfSelectedStateDrawable="@drawable/ic_hourglass_half_black_24dp"
+        app:selectedStateDrawable="@drawable/ic_hourglass_full_black_24dp"
+        app:maxRating="5"
+        app:rating="3.6" />
+
+</LinearLayout>
