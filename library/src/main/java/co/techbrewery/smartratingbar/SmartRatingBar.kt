@@ -3,6 +3,7 @@ package co.techbrewery.smartratingbar
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
@@ -35,6 +36,7 @@ class SmartRatingBar : LinearLayout {
     }
 
     private var parentHeight = 0
+    private var parentWidth = 0
     private var tintColor: Int? = null
     private var rating: Float = 0f
     private var maxRating = DEFAULT_MAX_RATING
@@ -88,6 +90,18 @@ class SmartRatingBar : LinearLayout {
         setRating(rating)
 
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> resizeChildren() }
+
+        setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_MOVE || event.action == MotionEvent.ACTION_UP) {
+                calculateRatingFromX(event.x)
+            }
+            true
+        }
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        parentWidth = w
     }
 
     private fun resizeChildren() {
@@ -118,15 +132,17 @@ class SmartRatingBar : LinearLayout {
         return (value * 2).roundToInt() / 2f
     }
 
-    private fun getNumberOfHalfs(): Int = (rating / 2f).toInt()
+    private fun calculateRatingFromX(x: Float) {
+        val percent = (x / parentWidth)
+        val calculatedRating = maxRating * percent
+        setRating(calculatedRating)
+    }
 
     fun setRating(rating: Float) {
         this.rating = roundToHalf(rating)
         (0 until maxRating).forEach { position ->
             val imageView = getImageView(position)
             when {
-                //position = 3
-                //rating = 3.7
                 rating >= position + 1 -> imageView.setImageDrawable(selectedStateStateDrawable)
                 rating >= position + 0.5f -> imageView.setImageDrawable(halfSelectedStateDrawable)
                 else -> imageView.setImageDrawable(emptyStateDrawable)
