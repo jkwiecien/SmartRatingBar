@@ -39,6 +39,7 @@ class SmartRatingBar : LinearLayout {
     private var parentWidth = 0
     private var tintColor: Int? = null
     private var rating: Float = 0f
+    private var allowHalf = true
     private var maxRating = DEFAULT_MAX_RATING
     private var emptyStateDrawable =
         ContextCompat.getDrawable(context, R.drawable.ic_star_black_outline)
@@ -72,9 +73,13 @@ class SmartRatingBar : LinearLayout {
                 R.styleable.SmartRatingBar_maxRating,
                 DEFAULT_MAX_RATING
             )
+
+            allowHalf =
+                srbAttributesTypedArray.getBoolean(R.styleable.SmartRatingBar_allowHalf, true)
+
             val preciseRating =
                 srbAttributesTypedArray.getFloat(R.styleable.SmartRatingBar_rating, 0f)
-            rating = roundToHalf(preciseRating)
+            rating = roundRating(preciseRating)
 
             if (srbAttributesTypedArray.hasValue(R.styleable.SmartRatingBar_emptyStateDrawable)) emptyStateDrawable =
                 srbAttributesTypedArray.getDrawable(R.styleable.SmartRatingBar_emptyStateDrawable)
@@ -92,8 +97,10 @@ class SmartRatingBar : LinearLayout {
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> resizeChildren() }
 
         setOnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_MOVE || event.action == MotionEvent.ACTION_UP) {
-                calculateRatingFromX(event.x)
+            if (event.action == MotionEvent.ACTION_MOVE) {
+                setRatingOnMovement(calculateRatingFromX(event.x))
+            } else if (event.action == MotionEvent.ACTION_UP) {
+                setRatingOnTap(calculateRatingFromX(event.x))
             }
             true
         }
@@ -128,27 +135,72 @@ class SmartRatingBar : LinearLayout {
         return imageView
     }
 
+    private fun roundRating(preciseRating: Float): Float {
+        return if (allowHalf) roundToHalf(preciseRating)
+        else preciseRating.roundToInt().toFloat()
+    }
+
     private fun roundToHalf(value: Float): Float {
         return (value * 2).roundToInt() / 2f
     }
 
-    private fun calculateRatingFromX(x: Float) {
+    private fun calculateRatingFromX(x: Float): Float {
         val percent = (x / parentWidth)
-        val calculatedRating = maxRating * percent
-        setRating(calculatedRating)
+        return maxRating * percent
     }
 
     fun setRating(rating: Float) {
-        this.rating = roundToHalf(rating)
+        this.rating = roundRating(rating)
+        (0 until maxRating).forEach { position ->
+            val imageView = getImageView(position)
+            if (allowHalf) {
+                when {
+                    rating >= position + 1 -> imageView.setImageDrawable(selectedStateStateDrawable)
+                    rating >= position + 0.5f -> imageView.setImageDrawable(
+                        halfSelectedStateDrawable
+                    )
+                    else -> imageView.setImageDrawable(emptyStateDrawable)
+                }
+            } else {
+                when {
+                    rating >= position + 1 -> imageView.setImageDrawable(selectedStateStateDrawable)
+                    else -> imageView.setImageDrawable(emptyStateDrawable)
+                }
+            }
+        }
+    }
+
+    private fun setRatingOnMovement(rating: Float) {
+        this.rating = roundRating(rating)
+        (0 until maxRating).forEach { position ->
+            val imageView = getImageView(position)
+            if (allowHalf) {
+                when {
+                    rating >= position + 1 -> imageView.setImageDrawable(selectedStateStateDrawable)
+                    rating >= position + 0.5f -> imageView.setImageDrawable(
+                        halfSelectedStateDrawable
+                    )
+                    else -> imageView.setImageDrawable(emptyStateDrawable)
+                }
+            } else {
+                when {
+                    rating >= position -> imageView.setImageDrawable(selectedStateStateDrawable)
+                    else -> imageView.setImageDrawable(emptyStateDrawable)
+                }
+            }
+        }
+    }
+
+    private fun setRatingOnTap(rating: Float) {
+        this.rating = roundRating(rating)
         (0 until maxRating).forEach { position ->
             val imageView = getImageView(position)
             when {
-                rating >= position + 1 -> imageView.setImageDrawable(selectedStateStateDrawable)
-                rating >= position + 0.5f -> imageView.setImageDrawable(halfSelectedStateDrawable)
+                rating >= position -> imageView.setImageDrawable(selectedStateStateDrawable)
                 else -> imageView.setImageDrawable(emptyStateDrawable)
             }
         }
     }
 
-    fun getImageView(position: Int): ImageView = getChildAt(position) as ImageView
+    private fun getImageView(position: Int): ImageView = getChildAt(position) as ImageView
 }
