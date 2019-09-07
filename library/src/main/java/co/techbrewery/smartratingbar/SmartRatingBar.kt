@@ -39,7 +39,15 @@ class SmartRatingBar : LinearLayout {
     private var parentHeight = 0
     private var parentWidth = 0
     private var tintColor: Int? = null
-    private var rating: Float = 0f
+
+    var rating: Float = 0f
+        set(value) {
+            field = roundRating(value)
+            (0 until maxRating).forEach { position ->
+                val imageView = getImageView(position)
+                updateDrawable(imageView, position)
+            }
+        }
     var allowHalf = true
 
     var interactionEnabled = true
@@ -119,8 +127,6 @@ class SmartRatingBar : LinearLayout {
             srbAttributesTypedArray.recycle()
         }
 
-        setRating(rating)
-
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> resizeChildren() }
 
         if (interactionEnabled) setOnTouchListener(touchListener)
@@ -170,13 +176,13 @@ class SmartRatingBar : LinearLayout {
         return maxRating * percent
     }
 
-    fun setRating(rating: Float) {
-        this.rating = roundRating(rating)
-        (0 until maxRating).forEach { position ->
-            val imageView = getImageView(position)
-            updateDrawable(imageView, position)
-        }
-    }
+//    fun setRating(rating: Float) {
+//        this.rating = roundRating(rating)
+//        (0 until maxRating).forEach { position ->
+//            val imageView = getImageView(position)
+//            updateDrawable(imageView, position)
+//        }
+//    }
 
     private fun updateDrawable(imageView: ImageView, position: Int) {
         if (allowHalf) {
