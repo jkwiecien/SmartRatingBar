@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.view.View.OnTouchListener
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
@@ -39,14 +40,36 @@ class SmartRatingBar : LinearLayout {
     private var parentWidth = 0
     private var tintColor: Int? = null
     private var rating: Float = 0f
-    private var allowHalf = true
-    private var maxRating = DEFAULT_MAX_RATING
-    private var emptyStateDrawable =
+    var allowHalf = true
+
+    var interactionEnabled = true
+        set(value) {
+            field = value
+            if (interactionEnabled) setOnTouchListener(touchListener)
+            else setOnTouchListener(null)
+        }
+
+    var maxRating = DEFAULT_MAX_RATING
+        set(value) {
+            field = value
+            buildView()
+        }
+
+    var emptyStateDrawable =
         ContextCompat.getDrawable(context, R.drawable.ic_star_black_outline)
-    private var halfSelectedStateDrawable =
+    var halfSelectedStateDrawable =
         ContextCompat.getDrawable(context, R.drawable.ic_star_black_half)
-    private var selectedStateStateDrawable =
+    var selectedStateStateDrawable =
         ContextCompat.getDrawable(context, R.drawable.ic_star_black)
+
+    private val touchListener = OnTouchListener { v, event ->
+        if (event.action == MotionEvent.ACTION_MOVE) {
+            setRatingOnMovement(calculateRatingFromX(event.x))
+        } else if (event.action == MotionEvent.ACTION_DOWN) {
+            setRatingOnTap(calculateRatingFromX(event.x))
+        }
+        true
+    }
 
     @SuppressLint("ResourceType")
     private fun init(context: Context, attrs: AttributeSet?) {
@@ -76,6 +99,11 @@ class SmartRatingBar : LinearLayout {
 
             allowHalf =
                 srbAttributesTypedArray.getBoolean(R.styleable.SmartRatingBar_allowHalf, true)
+            interactionEnabled =
+                srbAttributesTypedArray.getBoolean(
+                    R.styleable.SmartRatingBar_interactionEnabled,
+                    true
+                )
 
             val preciseRating =
                 srbAttributesTypedArray.getFloat(R.styleable.SmartRatingBar_rating, 0f)
@@ -91,19 +119,11 @@ class SmartRatingBar : LinearLayout {
             srbAttributesTypedArray.recycle()
         }
 
-        buildView()
         setRating(rating)
 
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> resizeChildren() }
 
-        setOnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_MOVE) {
-                setRatingOnMovement(calculateRatingFromX(event.x))
-            } else if (event.action == MotionEvent.ACTION_UP) {
-                setRatingOnTap(calculateRatingFromX(event.x))
-            }
-            true
-        }
+        if (interactionEnabled) setOnTouchListener(touchListener)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -121,9 +141,10 @@ class SmartRatingBar : LinearLayout {
     }
 
     private fun buildView() {
+        removeAllViews()
         (0 until maxRating).forEach { position ->
             val imageView = createImageView()
-            imageView.setImageDrawable(emptyStateDrawable)
+            updateDrawable(imageView, position)
             addView(imageView)
         }
     }
@@ -153,19 +174,23 @@ class SmartRatingBar : LinearLayout {
         this.rating = roundRating(rating)
         (0 until maxRating).forEach { position ->
             val imageView = getImageView(position)
-            if (allowHalf) {
-                when {
-                    rating >= position + 1 -> imageView.setImageDrawable(selectedStateStateDrawable)
-                    rating >= position + 0.5f -> imageView.setImageDrawable(
-                        halfSelectedStateDrawable
-                    )
-                    else -> imageView.setImageDrawable(emptyStateDrawable)
-                }
-            } else {
-                when {
-                    rating >= position + 1 -> imageView.setImageDrawable(selectedStateStateDrawable)
-                    else -> imageView.setImageDrawable(emptyStateDrawable)
-                }
+            updateDrawable(imageView, position)
+        }
+    }
+
+    private fun updateDrawable(imageView: ImageView, position: Int) {
+        if (allowHalf) {
+            when {
+                rating >= position + 1 -> imageView.setImageDrawable(selectedStateStateDrawable)
+                rating >= position + 0.5f -> imageView.setImageDrawable(
+                    halfSelectedStateDrawable
+                )
+                else -> imageView.setImageDrawable(emptyStateDrawable)
+            }
+        } else {
+            when {
+                rating >= position + 1 -> imageView.setImageDrawable(selectedStateStateDrawable)
+                else -> imageView.setImageDrawable(emptyStateDrawable)
             }
         }
     }
@@ -203,4 +228,5 @@ class SmartRatingBar : LinearLayout {
     }
 
     private fun getImageView(position: Int): ImageView = getChildAt(position) as ImageView
+
 }

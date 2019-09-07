@@ -5,6 +5,7 @@
         <attr name="maxRating" format="integer" />
         <attr name="rating" format="float" />
         <attr name="allowHalf" format="boolean" />
+        <attr name="interactionEnabled" format="boolean" />
         <attr name="emptyStateDrawable" format="reference" />
         <attr name="halfSelectedStateDrawable" format="reference" />
         <attr name="selectedStateDrawable" format="reference" />

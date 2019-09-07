@@ -9,6 +9,7 @@
     tools:context=".MainActivity">
 
     <co.techbrewery.smartratingbar.SmartRatingBar
+        android:id="@+id/smartRatingBar"
         android:layout_width="wrap_content"
         android:layout_height="36dp"
         android:foregroundTint="@color/colorAccent"
