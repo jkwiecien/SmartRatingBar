@@ -40,6 +40,8 @@ class SmartRatingBar : LinearLayout {
     private var parentWidth = 0
     private var tintColor: Int? = null
 
+    var onRatingChanged: ((Float) -> Unit)? = null
+
     var rating: Float = 0f
         set(value) {
             field = roundRating(value)
@@ -75,6 +77,8 @@ class SmartRatingBar : LinearLayout {
             setRatingOnMovement(calculateRatingFromX(event.x))
         } else if (event.action == MotionEvent.ACTION_DOWN) {
             setRatingOnTap(calculateRatingFromX(event.x))
+        } else if (event.action == MotionEvent.ACTION_UP) {
+            onRatingChanged?.invoke(rating)
         }
         true
     }
@@ -175,14 +179,6 @@ class SmartRatingBar : LinearLayout {
         val percent = (x / parentWidth)
         return maxRating * percent
     }
-
-//    fun setRating(rating: Float) {
-//        this.rating = roundRating(rating)
-//        (0 until maxRating).forEach { position ->
-//            val imageView = getImageView(position)
-//            updateDrawable(imageView, position)
-//        }
-//    }
 
     private fun updateDrawable(imageView: ImageView, position: Int) {
         if (allowHalf) {
