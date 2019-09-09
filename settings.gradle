@@ -1,2 +1,2 @@
-include ':kotlinsampleapp', ':library', ':javasampleapp'
+include ':kotlinsampleapp', ':smartratingbar', ':javasampleapp'
 rootProject.name = 'SmartRatingBar'
