@@ -1,7 +1,9 @@
 package co.techbrewery
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import co.techbrewery.smartratingbar.SmartRatingBar
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -11,5 +13,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         smartRatingBar.maxRating = 8
+        smartRatingBar.onRatingChangedListener = object : SmartRatingBar.OnRatingChangedListener {
+            override fun onRatingChanged(rating: Float) {
+                Log.v("SmartRatingBar", "On rating changed: $rating")
+            }
+
+        }
     }
 }

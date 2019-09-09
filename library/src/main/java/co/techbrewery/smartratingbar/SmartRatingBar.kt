@@ -14,6 +14,10 @@ import kotlin.math.roundToInt
 
 class SmartRatingBar : LinearLayout {
 
+    interface OnRatingChangedListener {
+        fun onRatingChanged(rating: Float)
+    }
+
     companion object {
         private const val LOG_TAG = "LOG_SmartRatingBar"
         private const val DEFAULT_MAX_RATING = 5
@@ -40,7 +44,7 @@ class SmartRatingBar : LinearLayout {
     private var parentWidth = 0
     private var tintColor: Int? = null
 
-    var onRatingChanged: ((Float) -> Unit)? = null
+    var onRatingChangedListener: OnRatingChangedListener? = null
 
     var rating: Float = 0f
         set(value) {
@@ -78,7 +82,7 @@ class SmartRatingBar : LinearLayout {
         } else if (event.action == MotionEvent.ACTION_DOWN) {
             setRatingOnTap(calculateRatingFromX(event.x))
         } else if (event.action == MotionEvent.ACTION_UP) {
-            onRatingChanged?.invoke(rating)
+            onRatingChangedListener?.onRatingChanged(rating)
         }
         true
     }
