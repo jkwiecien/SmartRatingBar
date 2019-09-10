@@ -4,11 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.view.View
 import android.view.View.OnTouchListener
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
-import androidx.core.view.children
 import kotlin.math.roundToInt
 
 
@@ -43,6 +43,8 @@ class SmartRatingBar : LinearLayout {
     private var parentHeight = 0
     private var parentWidth = 0
     private var tintColor: Int? = null
+
+    private val children: List<View> get() = (0 until childCount).map { getChildAt(it) }
 
     var onRatingChangedListener: OnRatingChangedListener? = null
 
@@ -98,7 +100,16 @@ class SmartRatingBar : LinearLayout {
 
             val androidAttributesTypedArray =
                 context.obtainStyledAttributes(attrs, androidAttributesSet)
-            parentHeight = androidAttributesTypedArray.getDimension(0, 0f).toInt()
+
+            parentHeight = try {
+                androidAttributesTypedArray.getDimension(0, 0f).toInt()
+            } catch (error: Exception) {
+                throw Exception(
+                    "SmartRatingBar must have fixed height, and not WRAP_CONTENT for instance",
+                    error
+                )
+            }
+
             tintColor = androidAttributesTypedArray.getColor(
                 1,
                 ContextCompat.getColor(context, DEFAULT_TINT_COLOR_RES_ID)
@@ -234,5 +245,4 @@ class SmartRatingBar : LinearLayout {
     }
 
     private fun getImageView(position: Int): ImageView = getChildAt(position) as ImageView
-
 }
