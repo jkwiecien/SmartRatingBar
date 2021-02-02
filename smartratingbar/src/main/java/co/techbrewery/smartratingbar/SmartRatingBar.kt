@@ -19,7 +19,7 @@ class SmartRatingBar : LinearLayout {
     }
 
     companion object {
-        private const val LOG_TAG = "LOG_SmartRatingBar"
+        const val LOG_TAG = "LOG_SmartRatingBar"
         private const val DEFAULT_MAX_RATING = 5
         private const val DEFAULT_TINT_COLOR_RES_ID = android.R.color.black
     }
@@ -79,11 +79,12 @@ class SmartRatingBar : LinearLayout {
     var selectedStateStateDrawable =
         ContextCompat.getDrawable(context, R.drawable.ic_star_black)
 
+    @SuppressLint("ClickableViewAccessibility")
     private val touchListener = OnTouchListener { v, event ->
         if (event.action == MotionEvent.ACTION_MOVE) {
             setRatingOnMovement(calculateRatingFromX(event.x))
         } else if (event.action == MotionEvent.ACTION_DOWN) {
-            setRatingOnTap(calculateRatingFromX(event.x))
+            setRatingOnTap(calculateRatingFromX(event.x) + 1)
         } else if (event.action == MotionEvent.ACTION_UP) {
             onRatingChangedListener?.onRatingChanged(rating)
         }
@@ -238,11 +239,11 @@ class SmartRatingBar : LinearLayout {
     }
 
     private fun setRatingOnTap(tappedRating: Float) {
-        val updatedRating: Float = if (allowHalf) {
-            roundToHalf(tappedRating)
-        } else if (allowDelete) {
+        val updatedRating: Float = if (allowDelete) {
             val floorRating = tappedRating.toInt()
             if (floorRating > 0 && rating.toInt() == floorRating) 0f else floorRating.toFloat()
+        } else if (allowHalf) {
+            roundToHalf(tappedRating)
         } else {
             tappedRating.toInt().toFloat()
         }
@@ -255,7 +256,7 @@ class SmartRatingBar : LinearLayout {
         (0 until maxRating).forEach { position ->
             val imageView = getImageView(position)
             when {
-                rating >= position && rating != 0f ->
+                rating - 1 >= position && rating != 0f ->
                     imageView.setImageDrawable(selectedStateStateDrawable)
                 else -> imageView.setImageDrawable(emptyStateDrawable)
             }

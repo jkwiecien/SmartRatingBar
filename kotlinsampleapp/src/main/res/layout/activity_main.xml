@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="36dp"
         android:foregroundTint="@color/colorAccent"
-        app:allowHalf="false"
+        app:allowDelete="true"
         app:maxRating="5"
         app:rating="3" />
 
