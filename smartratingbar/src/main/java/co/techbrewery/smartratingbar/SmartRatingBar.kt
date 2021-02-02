@@ -57,6 +57,7 @@ class SmartRatingBar : LinearLayout {
             }
         }
     var allowHalf = true
+    var allowDelete = false
 
     var interactionEnabled = true
         set(value) {
@@ -119,6 +120,14 @@ class SmartRatingBar : LinearLayout {
 
             val srbAttributesTypedArray =
                 context.obtainStyledAttributes(attrs, R.styleable.SmartRatingBar)
+
+            if (srbAttributesTypedArray.hasValue(R.styleable.SmartRatingBar_emptyStateDrawable)) emptyStateDrawable =
+                srbAttributesTypedArray.getDrawable(R.styleable.SmartRatingBar_emptyStateDrawable)
+            if (srbAttributesTypedArray.hasValue(R.styleable.SmartRatingBar_halfSelectedStateDrawable)) halfSelectedStateDrawable =
+                srbAttributesTypedArray.getDrawable(R.styleable.SmartRatingBar_halfSelectedStateDrawable)
+            if (srbAttributesTypedArray.hasValue(R.styleable.SmartRatingBar_selectedStateDrawable)) selectedStateStateDrawable =
+                srbAttributesTypedArray.getDrawable(R.styleable.SmartRatingBar_selectedStateDrawable)
+
             maxRating = srbAttributesTypedArray.getInt(
                 R.styleable.SmartRatingBar_maxRating,
                 DEFAULT_MAX_RATING
@@ -126,6 +135,8 @@ class SmartRatingBar : LinearLayout {
 
             allowHalf =
                 srbAttributesTypedArray.getBoolean(R.styleable.SmartRatingBar_allowHalf, true)
+            allowDelete =
+                srbAttributesTypedArray.getBoolean(R.styleable.SmartRatingBar_allowDelete, false)
             interactionEnabled =
                 srbAttributesTypedArray.getBoolean(
                     R.styleable.SmartRatingBar_interactionEnabled,
@@ -135,13 +146,6 @@ class SmartRatingBar : LinearLayout {
             val preciseRating =
                 srbAttributesTypedArray.getFloat(R.styleable.SmartRatingBar_rating, 0f)
             rating = roundRating(preciseRating)
-
-            if (srbAttributesTypedArray.hasValue(R.styleable.SmartRatingBar_emptyStateDrawable)) emptyStateDrawable =
-                srbAttributesTypedArray.getDrawable(R.styleable.SmartRatingBar_emptyStateDrawable)
-            if (srbAttributesTypedArray.hasValue(R.styleable.SmartRatingBar_halfSelectedStateDrawable)) halfSelectedStateDrawable =
-                srbAttributesTypedArray.getDrawable(R.styleable.SmartRatingBar_halfSelectedStateDrawable)
-            if (srbAttributesTypedArray.hasValue(R.styleable.SmartRatingBar_selectedStateDrawable)) selectedStateStateDrawable =
-                srbAttributesTypedArray.getDrawable(R.styleable.SmartRatingBar_selectedStateDrawable)
 
             srbAttributesTypedArray.recycle()
         }
@@ -233,16 +237,31 @@ class SmartRatingBar : LinearLayout {
         }
     }
 
-    private fun setRatingOnTap(rating: Float) {
-        this.rating = roundRating(rating)
+    private fun setRatingOnTap(tappedRating: Float) {
+        val updatedRating: Float = if (allowHalf) {
+            roundToHalf(tappedRating)
+        } else if (allowDelete) {
+            val floorRating = tappedRating.toInt()
+            if (floorRating > 0 && rating.toInt() == floorRating) 0f else floorRating.toFloat()
+        } else {
+            tappedRating.toInt().toFloat()
+        }
+
+        rating = updatedRating
+        updateViewStates()
+    }
+
+    private fun updateViewStates() {
         (0 until maxRating).forEach { position ->
             val imageView = getImageView(position)
             when {
-                rating >= position -> imageView.setImageDrawable(selectedStateStateDrawable)
+                rating >= position && rating != 0f ->
+                    imageView.setImageDrawable(selectedStateStateDrawable)
                 else -> imageView.setImageDrawable(emptyStateDrawable)
             }
         }
     }
 
     private fun getImageView(position: Int): ImageView = getChildAt(position) as ImageView
+
 }
