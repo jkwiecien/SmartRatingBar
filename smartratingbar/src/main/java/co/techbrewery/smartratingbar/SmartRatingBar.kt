@@ -57,7 +57,6 @@ class SmartRatingBar : LinearLayout {
             }
         }
     var allowHalf = true
-    var allowDelete = false
 
     var interactionEnabled = true
         set(value) {
@@ -136,8 +135,6 @@ class SmartRatingBar : LinearLayout {
 
             allowHalf =
                 srbAttributesTypedArray.getBoolean(R.styleable.SmartRatingBar_allowHalf, true)
-            allowDelete =
-                srbAttributesTypedArray.getBoolean(R.styleable.SmartRatingBar_allowDelete, false)
             interactionEnabled =
                 srbAttributesTypedArray.getBoolean(
                     R.styleable.SmartRatingBar_interactionEnabled,
@@ -239,10 +236,7 @@ class SmartRatingBar : LinearLayout {
     }
 
     private fun setRatingOnTap(tappedRating: Float) {
-        val updatedRating: Float = if (allowDelete) {
-            val floorRating = tappedRating.toInt()
-            if (floorRating > 0 && rating.toInt() == floorRating) 0f else floorRating.toFloat()
-        } else if (allowHalf) {
+        val updatedRating: Float = if (allowHalf) {
             roundToHalf(tappedRating)
         } else {
             tappedRating.toInt().toFloat()
